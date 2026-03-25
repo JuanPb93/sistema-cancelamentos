@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Cancelamentos — Protótipo</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card-2: #1f2937;
+      --line: #334155;
+      --text: #e5eefc;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-2: #38bdf8;
+      --danger: #ef4444;
+      --input: #0b1220;
+      --shadow: 0 16px 40px rgba(0,0,0,.28);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background: linear-gradient(160deg, #0b1220 0%, #111827 55%, #0f172a 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      border-right: 1px solid rgba(148, 163, 184, .16);
+      background: rgba(15, 23, 42, .75);
+      backdrop-filter: blur(12px);
+      padding: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 22px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .nav button {
+      all: unset;
+      cursor: pointer;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid rgba(148, 163, 184, .14);
+      transition: .2s ease;
+    }
+
+    .nav button:hover,
+    .nav button.active {
+      background: rgba(56, 189, 248, .12);
+      border-color: rgba(56, 189, 248, .38);
+      transform: translateY(-1px);
+    }
+
+    .nav-title {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .nav-desc {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .main {
+      padding: 26px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .hero h2 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: -.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, .12);
+      color: #dcfce7;
+      border: 1px solid rgba(34, 197, 94, .28);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+
+
+    .hero-session {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .hero-logout {
+      padding: 10px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, .82);
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .card h3 {
+      margin: 0 0 16px;
+      font-size: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 7px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--input);
+      border: 1px solid rgba(148,163,184,.18);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 12px;
+      outline: none;
+      transition: .18s ease;
+      font: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(56, 189, 248, .6);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, .12);
+    }
+
+    textarea { min-height: 102px; resize: vertical; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      all: unset;
+      cursor: pointer;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      transition: .18s ease;
+      border: 1px solid transparent;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #16a34a);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(56, 189, 248, .12);
+      color: #dbeafe;
+      border-color: rgba(56, 189, 248, .28);
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      border-color: rgba(148,163,184,.18);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .stats {
+      display: grid;
+      gap: 14px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border: 1px solid rgba(148,163,184,.14);
+    }
+
+    .stat .k {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .stat .v {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.14);
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1200px;
+      background: rgba(2,6,23,.32);
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(148,163,184,.10);
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      color: #cbd5e1;
+      background: rgba(255,255,255,.03);
+      position: sticky;
+      top: 0;
+    }
+
+    td { color: #e2e8f0; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(148,163,184,.15);
+      background: rgba(255,255,255,.03);
+    }
+
+    .empty {
+      margin-top: 16px;
+      padding: 22px;
+      border-radius: 16px;
+      border: 1px dashed rgba(148,163,184,.2);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .top-filters {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .date-wrap {
+      position: relative;
+    }
+
+    .date-wrap input[type="text"] {
+      padding-right: 46px;
+    }
+
+    .date-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+    }
+
+    .native-picker {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .muted-text {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .disabled-field {
+      opacity: .55;
+      pointer-events: none;
+    }
+
+    .contracts-box {
+      margin-bottom: 16px;
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(2,6,23,.18);
+    }
+
+    .contracts-head {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0;
+      border-bottom: 1px solid rgba(148,163,184,.14);
+      align-items: stretch;
+    }
+
+    .contracts-title,
+    .contracts-action {
+      padding: 14px 16px;
+    }
+
+    .contracts-title {
+      font-weight: 700;
+    }
+
+    .contracts-action {
+      background: transparent;
+      color: #7dd3fc;
+      border: 0;
+      border-left: 1px solid rgba(148,163,184,.14);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+
+    .contracts-body {
+      max-height: 250px;
+      overflow: auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px 26px;
+    }
+
+    .contract-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .contract-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: #38bdf8;
+      padding: 0;
+      border-radius: 4px;
+      box-shadow: none;
+    }
+
+    .warning {
+      color: #fca5a5;
+      font-size: 12px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      .top-filters { grid-template-columns: repeat(2, 1fr); }
+      .contracts-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { border-right: 0; border-bottom: 1px solid rgba(148,163,184,.16); }
+      .form-grid, .top-filters { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; }
+      .hero-session { justify-content: flex-start; }
+      .contracts-head { grid-template-columns: 1fr; }
+      .contracts-action { border-left: 0; border-top: 1px solid rgba(148,163,184,.14); text-align: left; }
+      .contracts-body { grid-template-columns: 1fr; }
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(17, 24, 39, .96);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.45);
+      padding: 22px;
+      text-align: center;
+    }
+
+    .modal h4 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .modal p {
+      margin: 0;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .modal-actions .btn {
+      min-width: 110px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+    }
+
+
+    .app.hidden {
+      display: none;
+    }
+
+    .login-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .login-screen.hidden {
+      display: none;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 460px;
+      background: rgba(17, 24, 39, .9);
+      border: 1px solid rgba(148,163,184,.16);
+      border-radius: 24px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.4);
+      padding: 28px;
+    }
+
+    .login-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 auto 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .login-card h2 {
+      margin: 0 0 8px;
+      text-align: center;
+      font-size: 28px;
+      letter-spacing: -.02em;
+    }
+
+    .login-card p {
+      margin: 0 0 22px;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .login-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .login-hint {
+      margin-top: 14px;
+      text-align: center;
+      color: #93c5fd;
+      font-size: 13px;
+    }
+    .session-user {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .session-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+  </style>
+</head>
+<body>
+  <section class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">C</div>
+      <h2>Entrar no sistema</h2>
+      <p>Selecione o usuário e digite a senha correspondente para acessar o sistema de cancelamentos.</p>
+
+      <div class="field">
+        <label for="loginUsuario">Usuário</label>
+        <select id="loginUsuario">
+          <option value="">Selecione</option>
+          <option>Bruna Martins</option>
+          <option>Guilherme Veras</option>
+          <option>Paulo Barros</option>
+          <option>Sulyana Andrade</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="loginSenha">Senha</label>
+        <input type="password" id="loginSenha" placeholder="Digite a senha" autocomplete="current-password" />
+      </div>
+
+      <div class="login-actions">
+        <button class="btn btn-primary" id="loginBtn">Entrar</button>
+      </div>
+
+      <div class="login-hint">O usuário é definido pela lista suspensa selecionada no login.</div>
+    </div>
+  </section>
+
+  <div class="app hidden" id="appRoot">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div>
+          <h1>Cancelamentos</h1>
+          
+        </div>
+      </div>
+
+      <div class="nav">
+        <button class="active" data-page="registro">
+          <span class="nav-title">Registro de Cancelamento</span>
+          <span class="nav-desc">Tela para cadastrar dados e simular gravação local.</span>
+        </button>
+        <button data-page="relatorios">
+          <span class="nav-title">Gerador de Relatórios</span>
+          <span class="nav-desc">Tela para filtrar dados e exportar planilha CSV.</span>
+        </button>
+      </div>
+
+    </aside>
+
+    <main class="main">
+      <section id="registro" class="page active">
+        <div class="hero">
+          <div>
+            <h2>Registro de Cancelamento</h2>
+            <p>Prévia visual da tela operacional para cadastro dos dados.</p>
+          </div>
+          <div class="hero-session">
+            <div class="pill" id="statusPill">Sessão ativa • Modo demonstração</div>
+            <button class="btn btn-ghost hero-logout" id="logoutBtn">Sair</button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h3>Dados do cancelamento</h3>
+            <div class="form-grid">
+              <div class="field">
+                <label for="dataCancelamento">Data do cancelamento</label>
+                <div class="date-wrap">
+                  <input type="text" id="dataCancelamento" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" />
+                  <button type="button" class="date-btn" data-picker-target="dataCancelamentoPicker" aria-label="Abrir calendário">📅</button>
+                  <input type="date" id="dataCancelamentoPicker" class="native-picker" tabindex="-1" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="contrato">Contrato</label>
+                <select id="contrato"></select>
+              </div>
+
+              <div class="field full">
+                <label for="beneficiario">Nome do beneficiário</label>
+                <input type="text" id="beneficiario" placeholder="Nome completo do beneficiário" autocomplete="off" />
+              </div>
+
+              <div class="field">
+                <label for="tipo">Tipo</label>
+                <select id="tipo">
+                  <option value="">Selecione</option>
+                  <option>TITULAR</option>
+                  <option>DEPENDENTE</option>
+                  <option>AGREGADO</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="uf">UF</label>
+                <select id="uf">
+                  <option value="">Selecione</option>
+                  <option>AC</option>
+                  <option>AL</option>
+                  <option>AP</option>
+                  <option>AM</option>
+                  <option>BA</option>
+                  <option>CE</option>
+                  <option>DF</option>
+                  <option>ES</option>
+                  <option>GO</option>
+                  <option>MA</option>
+                  <option>MT</option>
+                  <option>MS</option>
+                  <option>MG</option>
+                  <option>PA</option>
+                  <option>PB</option>
+                  <option>PR</option>
+                  <option>PE</option>
+                  <option>PI</option>
+                  <option>RJ</option>
+                  <option>RN</option>
+                  <option>RS</option>
+                  <option>RO</option>
+                  <option>RR</option>
+                  <option>SC</option>
+                  <option>SP</option>
+                  <option>SE</option>
+                  <option>TO</option>
+                </select>
+              </div>
+
+              <div class="field full">
+                <label for="motivo">Motivo</label>
+                <select id="motivo">
+                  <option value="">Selecione</option>
+                  <option>ÓBITO</option>
+                  <option>MUDANÇA DE OPERADORA</option>
+                  <option>ATENDIMENTO UNIMED/INTERMED</option>
+                  <option>MUDANÇA DE ESTADO</option>
+                  <option>MOTIVOS PESSOAIS</option>
+                  <option>INADIMPLÊNCIA</option>
+                  <option>MOTIVOS FINANCEIROS</option>
+                </select>
+              </div>
+
+              <div class="field" id="utilizacaoField">
+                <label for="utilizacao">Utilização</label>
+                <select id="utilizacao">
+                  <option value="">Selecione</option>
+                  <option>ALTA</option>
+                  <option>BAIXA</option>
+                </select>
+              </div>
+
+              <div class="field" id="pagadorField">
+                <label for="pagador">Pagador</label>
+                <select id="pagador">
+                  <option value="">Selecione</option>
+                  <option>BOM</option>
+                  <option>RUIM</option>
+                </select>
+              </div>
+
+              <div class="field full">
+                <label for="observacao">Observação / motivo complementar</label>
+                <textarea id="observacao" placeholder="Detalhes adicionais do cancelamento..."></textarea>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-primary" id="salvarBtn">Salvar registro</button>
+              <button class="btn btn-secondary" id="limparBtn">Limpar campos</button>
+            </div>
+            <div class="hint">Nesta versão estática, os dados ficam salvos apenas no navegador.</div>
+          </div>
+
+          <div class="stats">
+            <div class="card stat">
+              <div class="k">Registros salvos</div>
+              <div class="v" id="totalRegistros">0</div>
+            </div>
+            <div class="card stat">
+              <div class="k">Último contrato</div>
+              <div class="v" id="ultimoContrato">—</div>
+            </div>
+            <div class="card stat">
+              <div class="k">Último responsável</div>
+              <div class="v" id="ultimoResponsavel" style="font-size:20px">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="relatorios" class="page">
+        <div class="hero">
+          <div>
+            <h2>Gerador de Relatórios</h2>
+            <p>Prévia da tela administrativa para consulta e exportação de planilha.</p>
+          </div>
+          <div class="pill">Exportação CSV habilitada</div>
+        </div>
+
+        <div class="card">
+          <div class="contracts-box">
+            <div class="contracts-head">
+              <div class="contracts-title">Convênios Ativos *</div>
+              <button type="button" class="contracts-action" id="marcarTodosBtn">Marcar</button>
+              <button type="button" class="contracts-action" id="desmarcarTodosBtn">Desmarcar</button>
+            </div>
+            <div class="contracts-body" id="contratosFiltroLista"></div>
+          </div>
+          <div class="warning" id="contratoWarning">Selecione pelo menos um contrato para gerar o relatório.</div>
+
+          <div class="top-filters">
+            <div>
+              <label for="filtroInicio">Data inicial</label>
+              <div class="date-wrap">
+                <input type="text" id="filtroInicio" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" />
+                <button type="button" class="date-btn" data-picker-target="filtroInicioPicker" aria-label="Abrir calendário">📅</button>
+                <input type="date" id="filtroInicioPicker" class="native-picker" tabindex="-1" />
+              </div>
+            </div>
+            <div>
+              <label for="filtroFim">Data final</label>
+              <div class="date-wrap">
+                <input type="text" id="filtroFim" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off" />
+                <button type="button" class="date-btn" data-picker-target="filtroFimPicker" aria-label="Abrir calendário">📅</button>
+                <input type="date" id="filtroFimPicker" class="native-picker" tabindex="-1" />
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="exportarBtn">Exportar CSV</button>
+            
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+
+  <div class="modal-backdrop" id="errorModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="errorModalTitle">
+      <h4 id="errorModalTitle">Atenção</h4>
+      <p id="errorModalMessage">Mensagem</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="errorModalOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    const STORAGE_KEY = 'cancelamentos_demo_v2';
+    const SESSION_KEY = 'cancelamentos_demo_usuario_logado';
+    const USERS = {
+      'Bruna Martins': 'bruna2026',
+      'Guilherme Veras': 'guilherme2026',
+      'Paulo Barros': 'paulo2026',
+      'Sulyana Andrade': 'sulyana2026'
+    };
+    const CONTRATOS = [
+      '590 - SISMUJOF',
+      '1599 - ASSIFPI INTERMED',
+      '1609 - SINTUFPI INTERMED',
+      '1673 - ACIP INTERMED',
+      '4572 - FESPPI',
+      '4599 - SINDEPOL',
+      '4677 - ADCESP',
+      '4690 - SINTUFPI',
+      '4691 - ASSIFPI',
+      '4709 - CRF',
+      '4713 - SEBRAE',
+      '4903 - SINSEP',
+      '4970 - SINTEPI',
+      '5361 - ACIP',
+      '5392 - SENATEPI',
+      '5446 - CAU',
+      '5562 - CRMV',
+      '5580 - CRECI',
+      '5621 - CDL',
+      '5841 - SINPRO',
+      '5956 - ASSIFPE'
+    ];
+
+    const loginScreen = document.getElementById('loginScreen');
+    const appRoot = document.getElementById('appRoot');
+    const loginUsuario = document.getElementById('loginUsuario');
+    const loginSenha = document.getElementById('loginSenha');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const statusPill = document.getElementById('statusPill');
+    const navButtons = document.querySelectorAll('.nav button');
+    const pages = document.querySelectorAll('.page');
+    const contratoSelect = document.getElementById('contrato');
+    const contratosFiltroLista = document.getElementById('contratosFiltroLista');
+    const contratoWarning = document.getElementById('contratoWarning');
+    const motivoEl = document.getElementById('motivo');
+    const utilizacaoEl = document.getElementById('utilizacao');
+    const pagadorEl = document.getElementById('pagador');
+    const utilizacaoField = document.getElementById('utilizacaoField');
+    const pagadorField = document.getElementById('pagadorField');
+    let currentRows = [];
+
+    function getCurrentUser() {
+      return localStorage.getItem(SESSION_KEY) || '';
+    }
+
+    function setCurrentUser(userName) {
+      if (userName) {
+        localStorage.setItem(SESSION_KEY, userName);
+      } else {
+        localStorage.removeItem(SESSION_KEY);
+      }
+      syncSessionUI();
+    }
+
+    function syncSessionUI() {
+      const currentUser = getCurrentUser();
+      const logged = Boolean(currentUser);
+      loginScreen.classList.toggle('hidden', logged);
+      appRoot.classList.toggle('hidden', !logged);
+      document.getElementById('ultimoResponsavel').textContent = currentUser || '—';
+      statusPill.textContent = logged ? `Sessão ativa • ${currentUser}` : 'Sessão ativa • Modo demonstração';
+    }
+
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', () => activatePage(btn.dataset.page));
+    });
+
+    function activatePage(pageId) {
+      navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.page === pageId));
+      pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+    }
+
+    function populateContracts() {
+      contratoSelect.innerHTML = '<option value="">Selecione</option>' + CONTRATOS.map(item => `<option>${item}</option>`).join('');
+      contratosFiltroLista.innerHTML = CONTRATOS.map((item, index) => `
+        <label class="contract-item">
+          <input type="checkbox" class="contrato-filtro" value="${item}" id="contratoFiltro${index}" />
+          <span>${item}</span>
+        </label>
+      `).join('');
+    }
+
+    function getSelectedContracts() {
+      return Array.from(document.querySelectorAll('.contrato-filtro:checked')).map(el => el.value);
+    }
+
+    function parseDateToISO(value) {
+      if (!value) return '';
+      const cleaned = String(value).trim();
+      let match = cleaned.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (match) {
+        const [, d, m, y] = match;
+        return validateDateParts(d, m, y) ? `${y}-${m}-${d}` : '';
+      }
+      const digits = cleaned.replace(/\D/g, '');
+      if (digits.length === 8) {
+        const d = digits.slice(0, 2);
+        const m = digits.slice(2, 4);
+        const y = digits.slice(4, 8);
+        return validateDateParts(d, m, y) ? `${y}-${m}-${d}` : '';
+      }
+      return '';
+    }
+
+    function formatISOToBR(iso) {
+      if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+      const [y, m, d] = iso.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    function validateDateParts(d, m, y) {
+      const day = Number(d), month = Number(m), year = Number(y);
+      if (!day || !month || !year || month < 1 || month > 12 || day < 1 || day > 31) return false;
+      const date = new Date(year, month - 1, day);
+      return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+    }
+
+    function wireDateField(textId, pickerId) {
+      const text = document.getElementById(textId);
+      const picker = document.getElementById(pickerId);
+      const button = document.querySelector(`[data-picker-target="${pickerId}"]`);
+
+      text.addEventListener('blur', () => {
+        const iso = parseDateToISO(text.value);
+        if (text.value && !iso) {
+          alert('Data inválida. Use o formato DD/MM/AAAA.');
+          text.value = '';
+          picker.value = '';
+          return;
+        }
+        text.value = formatISOToBR(iso);
+        picker.value = iso;
+      });
+
+      button.addEventListener('click', () => {
+        if (typeof picker.showPicker === 'function') {
+          picker.showPicker();
+        } else {
+          picker.focus();
+          picker.click();
+        }
+      });
+
+      picker.addEventListener('change', () => {
+        text.value = formatISOToBR(picker.value);
+      });
+    }
+
+    function sanitizeBeneficiario(value) {
+      return value
+        .normalize('NFC')
+        .toUpperCase()
+        .replace(/[^A-ZÀ-ÖØ-ÝÇ'\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trimStart();
+    }
+
+    function applySinistralidadeRule() {
+      const isObito = motivoEl.value === 'ÓBITO';
+      if (isObito) {
+        utilizacaoEl.value = '';
+        pagadorEl.value = '';
+      }
+      utilizacaoEl.disabled = isObito;
+      pagadorEl.disabled = isObito;
+      utilizacaoField.classList.toggle('disabled-field', isObito);
+      pagadorField.classList.toggle('disabled-field', isObito);
+    }
+
+    function getData() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function setData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      updateStats();
+    }
+
+    function nowBR() {
+      const now = new Date();
+      return now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function updateStats() {
+      const data = getData();
+      document.getElementById('totalRegistros').textContent = data.length;
+      document.getElementById('ultimoContrato').textContent = data.length ? data[data.length - 1].contrato || '—' : '—';
+      document.getElementById('ultimoResponsavel').textContent = getCurrentUser() || '—';
+    }
+
+    function clearForm() {
+      ['dataCancelamento','contrato','beneficiario','tipo','uf','motivo','utilizacao','pagador','observacao'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('dataCancelamentoPicker').value = '';
+      applySinistralidadeRule();
+    }
+
+    motivoEl.addEventListener('change', applySinistralidadeRule);
+
+    document.getElementById('beneficiario').addEventListener('input', (e) => {
+      const cursor = e.target.selectionStart;
+      const sanitized = sanitizeBeneficiario(e.target.value);
+      e.target.value = sanitized;
+      try { e.target.setSelectionRange(cursor, cursor); } catch {}
+    });
+
+    document.getElementById('salvarBtn').addEventListener('click', () => {
+      const dataIso = parseDateToISO(document.getElementById('dataCancelamento').value);
+      const contrato = document.getElementById('contrato').value;
+      const beneficiario = sanitizeBeneficiario(document.getElementById('beneficiario').value);
+      const tipo = document.getElementById('tipo').value;
+      const uf = document.getElementById('uf').value;
+      const motivo = document.getElementById('motivo').value;
+      const utilizacao = document.getElementById('utilizacao').value;
+      const pagador = document.getElementById('pagador').value;
+      const observacao = document.getElementById('observacao').value.trim();
+
+      if (!dataIso || !contrato || !beneficiario || !tipo || !uf || !motivo) {
+        showError('Preencha pelo menos: data, contrato, beneficiário, tipo, UF e motivo.');
+        return;
+      }
+
+      if (motivo !== 'ÓBITO' && (!utilizacao || !pagador)) {
+        alert('Preencha Utilização e Pagador para motivos diferentes de ÓBITO.');
+        return;
+      }
+
+      const registro = {
+        atendente: getCurrentUser(),
+        dataIso,
+        data: formatISOToBR(dataIso),
+        contrato,
+        beneficiario,
+        tipo,
+        uf,
+        motivo,
+        utilizacao: motivo === 'ÓBITO' ? '' : utilizacao,
+        pagador: motivo === 'ÓBITO' ? '' : pagador,
+        observacao,
+        criadoEm: nowBR()
+      };
+
+      const data = getData();
+      data.push(registro);
+      setData(data);
+      alert('Registro salvo na base local de demonstração.');
+      clearForm();
+    });
+
+    document.getElementById('limparBtn').addEventListener('click', clearForm);
+
+    document.getElementById('marcarTodosBtn').addEventListener('click', () => {
+      document.querySelectorAll('.contrato-filtro').forEach(el => { el.checked = true; });
+
+    });
+
+    document.getElementById('desmarcarTodosBtn').addEventListener('click', () => {
+      document.querySelectorAll('.contrato-filtro').forEach(el => { el.checked = false; });
+    });
+
+    function getTodayISO() {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+
+    function validateReportDates() {
+      const inicioValor = document.getElementById('filtroInicio').value.trim();
+      const fimValor = document.getElementById('filtroFim').value.trim();
+      const inicioIso = parseDateToISO(inicioValor);
+      const fimIsoDigitado = parseDateToISO(fimValor);
+      const hojeIso = getTodayISO();
+
+      if (inicioValor && !inicioIso) {
+        showError('Data inicial incorreta. Use o formato DD/MM/AAAA.');
+        return null;
+      }
+
+      if (fimValor && !fimIsoDigitado) {
+        showError('Data final incorreta. Use o formato DD/MM/AAAA.');
+        return null;
+      }
+
+      if (!inicioIso && fimIsoDigitado) {
+        showError('Precisa escolher uma data inicial.');
+        return null;
+      }
+
+      if (!inicioIso) {
+        showError('Precisa escolher uma data inicial.');
+        return null;
+      }
+
+      if (inicioIso && inicioIso > hojeIso) {
+        showError('Data incorreta.');
+        return null;
+      }
+
+      if (inicioIso && fimIsoDigitado && fimIsoDigitado < inicioIso) {
+        showError('Data final menor que inicial.');
+        return null;
+      }
+
+      const fimIso = inicioIso && !fimIsoDigitado ? hojeIso : fimIsoDigitado;
+      return { inicioIso, fimIso };
+    }
+
+    function filterData() {
+      const contratosSelecionados = getSelectedContracts();
+      if (!contratosSelecionados.length) {
+        showError('Precisa marcar pelo menos um contrato.');
+        return null;
+      }
+
+      const dateRange = validateReportDates();
+      if (!dateRange) return null;
+
+      const { inicioIso, fimIso } = dateRange;
+
+      return getData().filter(item => {
+        const okContrato = contratosSelecionados.includes(item.contrato);
+        const okInicio = !inicioIso || item.dataIso >= inicioIso;
+        const okFim = !fimIso || item.dataIso <= fimIso;
+        return okContrato && okInicio && okFim;
+      });
+    }
+
+    document.getElementById('exportarBtn').addEventListener('click', () => {
+      const rows = filterData();
+      if (rows === null) {
+        return;
+      }
+      if (!rows.length) {
+        showError('Nenhum registro encontrado com os filtros aplicados.');
+        return;
+      }
+
+      const headers = ['ATENDENTE','DATA_CANCELAMENTO','CONTRATO','BENEFICIARIO','TIPO','UF','MOTIVO','UTILIZACAO','PAGADOR','OBSERVACAO','DATA_HORA_DO_REGISTRO'];
+      const csv = [headers.join(';')].concat(
+        rows.map(r => [
+          removeAccents(String(r.atendente || "")),
+          removeAccents(String(r.data || "")),
+          removeAccents(String(r.contrato || "")),
+          removeAccents(String(r.beneficiario || "")),
+          removeAccents(String(r.tipo || "")),
+          removeAccents(String(r.uf || "")),
+          removeAccents(String(r.motivo || "")),
+          removeAccents(String(r.utilizacao || "")),
+          removeAccents(String(r.pagador || "")),
+          (removeAccents(String(r.observacao || "")) || '').replace(/\n/g, ' '),
+          removeAccents(String(r.criadoEm || ""))
+        ].map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(';'))
+      ).join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'relatorio_cancelamentos_demo.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    const limparDadosBtn = document.getElementById('limparDadosBtn');
+    if (limparDadosBtn) {
+      limparDadosBtn.addEventListener('click', () => {
+        if (!confirm('Deseja apagar todos os registros salvos nesta demonstração?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        updateStats();
+        alert('Base demo limpa com sucesso.');
+      });
+    }
+
+    loginBtn.addEventListener('click', () => {
+      const usuario = loginUsuario.value;
+      const senha = loginSenha.value;
+
+      if (!usuario) {
+        showError('Selecione um usuário para entrar.');
+        return;
+      }
+
+      if (!senha) {
+        showError('Digite a senha do usuário selecionado.');
+        return;
+      }
+
+      if (USERS[usuario] !== senha) {
+        showError('Usuário ou senha inválidos.');
+        loginSenha.value = '';
+        loginSenha.focus();
+        return;
+      }
+
+      setCurrentUser(usuario);
+      loginSenha.value = '';
+      activatePage('registro');
+    });
+
+    loginSenha.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        loginBtn.click();
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      setCurrentUser('');
+      loginUsuario.value = '';
+      loginSenha.value = '';
+      loginUsuario.focus();
+    });
+
+    populateContracts();
+    wireDateField('dataCancelamento', 'dataCancelamentoPicker');
+    wireDateField('filtroInicio', 'filtroInicioPicker');
+    wireDateField('filtroFim', 'filtroFimPicker');
+    applySinistralidadeRule();
+    syncSessionUI();
+    updateStats();
+  
+function removeAccents(str){
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://qoidrakgebevxxzndoaz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-v-taw9qlfBI_C7WfDQ58w_rtaZSI39";
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+
+</body>
+</html>
